@@ -54,7 +54,7 @@ var database = firebase.database();
     //initially disable start button until two players are on site
     function disableButton() {
 
-        $(".startText").text("Waiting for another player to start the game...");
+        $(".startText").text("Waiting for another player to start the game... (2 players only)");
         $(".startbtn").prop("disabled", true);
         enableButton();
     }
@@ -62,7 +62,10 @@ var database = firebase.database();
 
     //enable start button when two players are on site
     function enableButton() {
-        if (numberOfPeople !== 2) {
+        if (numberOfPeople > 2) {
+            $(".startText").text("There are too many people. Only 2 players can play at a time.");
+            return false;
+        } else if (numberOfPeople !== 2) {
             return false;
         } else {
             $(".startbtn").removeAttr("disabled");
@@ -76,52 +79,90 @@ var database = firebase.database();
     });
 
 
-//load game with three choices using images
-//each player can pick a choice. 
-//the next screen doesn't load until both players have made a choice
-//game checks to see who won
-//game displays who won and updates wins/losses
-//chat can be used anytime and chat gets sent to firebase when submit is pressed
-//firebased chat is loaded to right side of game in the chatBox column
-//
 
 /********************
  * Main Game Content 
  * */
 
+//each player can pick a choice. 
+$(".btn").on("click", function(event) {
+
+    event.preventDefault();
+
+    chosenButton = $(this).attr("title");
+
+console.log(chosenButton);
+
+    $(".chosen-button-text").html("You chose: " + chosenButton);
+
+    $(".btn").prop("disabled", true);
+
+    opponentTurn();
+});
+
+
+function opponentTurn() {
+
+    
+
+
+}
+
+//the next screen doesn't load until both players have made a choice
+//game checks to see who won
+//game displays who won and updates wins/losses
+
+
+
+
+ /********** Chatter box content */
 //Pressing submit button writes text and timestamp
 $(".submitButton").on("click", function(event) {
 
     event.preventDefault();
-    var inputText = $("#chat").val().trim();
 
+    //grab user input text
+    var inputText = $("#chat").val().trim();
+    
     if (inputText === "") {
         return false;
     } else {
 
-        var dateT = $("<span>")
-        var d = new Date();
-        var n = d.toLocaleTimeString();
-        var m = d.toLocaleDateString();
+        //upload input text to database
+        database.ref().push(inputText);
 
-        dateT.addClass("timeOfText");
-        dateT.text("  (" + n + ", " + m + ")");
-
-        console.log(inputText);
-        var newP = $("<p>");
-        newP.addClass("chatBoxText");
-
-        newP.append(inputText);
-        newP.append(dateT);
-
-        $(".chatBox").prepend(newP);
         $("#chat").val("");
     }
 
 });
 
+//display input text from firebase to chatter box past and present
+database.ref().on("child_added", function(childSnapshot) {
 
+    //put text in variable
+    var inputText = childSnapshot.val();
 
+    //make variable for time stamp
+    var dateT = $("<span>")
+    var d = new Date();
+    var n = d.toLocaleTimeString();
+    var m = d.toLocaleDateString();
+
+    //order timestamp to show time then date
+    dateT.addClass("timeOfText");
+    dateT.text("  (" + n + ", " + m + ")");
+
+    //create new paragraph variable
+    var newP = $("<p>");
+
+    //give text a class and append text and timestamp
+    newP.addClass("chatBoxText");
+    newP.append(inputText);
+    newP.append(dateT);
     
+    //display text from firebase to chatter box
+    $(".chatBox").prepend(newP);
+})
+
 //end of document ready
 });
