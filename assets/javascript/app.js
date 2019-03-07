@@ -15,6 +15,8 @@ firebase.initializeApp(config);
 // Create a variable to reference the database.
 var database = firebase.database();
 
+var userID1 = "";
+var userID2 = "";
 
 //initiate game for two players using user connections count (2 players)
 
@@ -23,6 +25,8 @@ var database = firebase.database();
 
     // .info/connected updates when client's connection state changes
     var connectedRef = database.ref(".info/connected");
+
+    console.log(connectionsRef);
 
     var numberOfPeople;
     //When client's connection state changes show changes
@@ -46,7 +50,7 @@ var database = firebase.database();
     // Display the viewer count in the html.
     // The number of online users is the number of children in the connections list.
     $("#current-players").text(snapshot.numChildren());
-    console.log(numberOfPeople);
+
     enableButton();
     });
 
@@ -75,7 +79,19 @@ var database = firebase.database();
 
     //pressing start button reveals game page
     $(".startbtn").on("click", function() {
-    $(".start-cover").css('visibility','hidden');
+
+        if (userID1 === "") {
+
+            userID1 = database.app.options.messagingSenderId;
+            console.log(userID1);
+
+        } else if (userID2 !== "") {
+
+            userID2 = database.app.options.messagingSenderId;
+            console.log(userID2);
+        }
+
+        $(".start-cover").css('visibility','hidden');
     });
 
 
@@ -84,18 +100,27 @@ var database = firebase.database();
  * Main Game Content 
  * */
 
+var playerOneChoice;
+var playerTwoChoice;
+var playerOneName = connectionsRef;
+var playerTwoName;
+var playerOneWins = 0;
+var playerTwoWins = 0;
+var playerOneLosses = 0;
+var playerTwoLosses = 0;
+
+console.log(playerOneName);
+
 //each player can pick a choice. 
 $(".btn").on("click", function(event) {
 
     event.preventDefault();
 
-    chosenButton = $(this).attr("title");
+    playerOneChoice = $(this).attr("title");
 
-console.log(chosenButton);
+console.log(playerOneChoice);
 
-    $(".chosen-button-text").html("You chose: " + chosenButton);
-
-    $(".btn").prop("disabled", true);
+    $(".chosen-button-text").html("You chose: " + playerOneChoice);
 
     opponentTurn();
 });
@@ -103,7 +128,13 @@ console.log(chosenButton);
 
 function opponentTurn() {
 
-    
+    if (playerOneChoice === "rock" && playerTwoChoice === "paper") {
+
+        playerOneLosse++;
+        playerTwoWins++;
+
+    }
+
 
 
 }
@@ -166,3 +197,11 @@ database.ref().on("child_added", function(childSnapshot) {
 
 //end of document ready
 });
+
+
+/************************
+ * Questions to ask
+ * 
+ * Does each connected person have an ID on Firebase?
+ * How to link each player to a specific ID
+ */
