@@ -15,8 +15,8 @@ firebase.initializeApp(config);
 // Create a variable to reference the database.
 var database = firebase.database();
 
-var userID1 = "";
-var userID2 = "";
+var userIdOne = "";
+var userIdTwo = "";
 
 //initiate game for two players using user connections count (2 players)
 
@@ -26,7 +26,7 @@ var userID2 = "";
     // .info/connected updates when client's connection state changes
     var connectedRef = database.ref(".info/connected");
 
-    console.log(connectionsRef);
+    var chatBox = database.ref("/chatbox");
 
     var numberOfPeople;
     //When client's connection state changes show changes
@@ -38,6 +38,9 @@ var userID2 = "";
         // Add user to the connections list.
         var con = connectionsRef.push(true);
 
+
+        console.log(con);
+ 
         // Remove user from the connection list when they disconnect.
         con.onDisconnect().remove();
     }
@@ -53,6 +56,7 @@ var userID2 = "";
 
     enableButton();
     });
+
 
 
     //initially disable start button until two players are on site
@@ -80,19 +84,36 @@ var userID2 = "";
     //pressing start button reveals game page
     $(".startbtn").on("click", function() {
 
-        if (userID1 === "") {
-
-            userID1 = database.app.options.messagingSenderId;
-            console.log(userID1);
-
-        } else if (userID2 !== "") {
-
-            userID2 = database.app.options.messagingSenderId;
-            console.log(userID2);
-        }
+        //login anonymously
+        firebase.auth().signInAnonymously();
 
         $(".start-cover").css('visibility','hidden');
     });
+
+
+
+    firebase.auth().onAuthStateChanged(firebaseUser => {
+
+        if (userIdOne === "") {
+
+            userIdOne = firebaseUser.uid;
+            console.log(userIdOne);
+
+        } else if (userID2 !== "") {
+
+            userIdTwo = firebaseUser.uid;
+            console.log(userIdOne);
+            console.log(userIdTwo);
+        }
+    });
+
+
+
+
+
+
+
+
 
 
 
@@ -160,7 +181,7 @@ $(".submitButton").on("click", function(event) {
     } else {
 
         //upload input text to database
-        database.ref().push(inputText);
+        chatBox.push(inputText);
 
         $("#chat").val("");
     }
@@ -168,7 +189,7 @@ $(".submitButton").on("click", function(event) {
 });
 
 //display input text from firebase to chatter box past and present
-database.ref().on("child_added", function(childSnapshot) {
+chatBox.on("child_added", function(childSnapshot) {
 
     //put text in variable
     var inputText = childSnapshot.val();
@@ -204,4 +225,6 @@ database.ref().on("child_added", function(childSnapshot) {
  * 
  * Does each connected person have an ID on Firebase?
  * How to link each player to a specific ID
+ * how to assign values to specific elements on firebase
+ * how to get those values form firebase
  */
