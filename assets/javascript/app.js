@@ -30,7 +30,11 @@ var userId = "";
     // .info/connected updates when client's connection state changes
     var connectedRef = database.ref(".info/connected");
 
+    //put all chat into chatBox "folder"
     var chatBox = database.ref("/chatbox");
+
+    //put all game choices in gameChoices "folder"
+    var gameChoices = database.ref("/gameChoices");
 
     var numberOfPeople;
     //When client's connection state changes show changes
@@ -127,7 +131,7 @@ $(".btn").on("click", function(event) {
     console.log(playerOneChoice);
 
     //push choice and player userID to firebase
-    database.ref().push({
+    gameChoices.push({
         userId: userId,
         playerChoice: playerOneChoice,
         dateAdded: firebase.database.ServerValue.TIMESTAMP
@@ -141,7 +145,7 @@ $(".btn").on("click", function(event) {
     
 });
 
-database.ref().orderByChild("dateAdded").limitToLast(1).on("child_added", function(childSnapshot) {
+gameChoices.orderByChild("dateAdded").limitToLast(1).on("child_added", function(childSnapshot) {
     var sh = childSnapshot.val();
 
     console.log(sh.userId);
@@ -169,23 +173,6 @@ database.ref().orderByChild("dateAdded").limitToLast(1).on("child_added", functi
     console.log("Errors handled: " + errorObject.code);
 });
 
-
-
- /**********************
-  * code for game
-  * 
-  * once players sign in, put their ID into a variable for the player 1 and push to firebase and load
-  * once second player signs in, put their ID into variable for player 2 and push to firebase and load
-  * show player 1 and player 2 name on screen
-  * when player picks the button choice, disable button, push the value of the button to firebase with nameID and show "player has made a choice"
-  * have second player make choice and then disable their button, push the value to firebase with nameID.
-  * make if then statement inside the uploading of game details for going to game win/lose function. If other player's choice isnt made yet, return false.
-  * else go to function 
-  * once both values are loaded, display what each chose and who won. in steps
-  * 1) display both players choices with nameID
-  * 2) make if statements: if the player's current ID is rock and other player's ID is paper, lose. etc
-  * 3) once both values are displayed, run function to enable button and run game again
-  */
 
 
 //once both players made choice, check choices and display winner
