@@ -20,6 +20,7 @@ firebase.initializeApp(config);
 // Create a variable to reference the database.
 var database = firebase.database();
 
+//grab current user's ID 
 var userId = "";
 
 //initiate game for two players using user connections count (2 players)
@@ -36,7 +37,9 @@ var userId = "";
     //put all game choices in gameChoices "folder"
     var gameChoices = database.ref("/gameChoices");
 
+    //number of people logged on
     var numberOfPeople;
+
     //When client's connection state changes show changes
     connectedRef.on("value", function(snap) {
 
@@ -80,9 +83,10 @@ var userId = "";
     function enableButton() {
         if (numberOfPeople > 2) {
             $(".startText").text("There are too many people. Only 2 players can play at a time.");
-            return false;
-        } else if (numberOfPeople !== 2) {
-            return false;
+            $(".startbtn").prop("disabled", true);
+        } else if (numberOfPeople === 1) {
+            $(".startText").text("Waiting for another player to start the game... (2 players only)");
+            $(".startbtn").prop("disabled", true);
         } else {
             $(".startbtn").removeAttr("disabled");
             $(".startText").text("There are two players now. Press Start Game!");
@@ -115,6 +119,7 @@ var userId = "";
  * Main Game Content 
  * */
 
+// variables for player two and player choices
 var playerOneChoice;
 var playerTwoChoice;
 var playerTwoName;
@@ -146,11 +151,9 @@ $(".btn").on("click", function(event) {
 });
 
 gameChoices.orderByChild("dateAdded").limitToLast(1).on("child_added", function(childSnapshot) {
+
     var sh = childSnapshot.val();
 
-    console.log(sh.userId);
-    console.log(userId);
-    console.log(sh.playerChoice);
     if (sh.userId === userId) {
 
         checkChoices();
@@ -160,14 +163,10 @@ gameChoices.orderByChild("dateAdded").limitToLast(1).on("child_added", function(
         playerTwoName = sh.userId;
         playerTwoChoice = sh.playerChoice;
 
-        console.log(playerTwoName + " " + playerTwoChoice);
-     
-        $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
+        $(".opponent-choice").text("Your opponent made a choice.");
 
         checkChoices();
     }
-
-    
 
 }, function(errorObject) {
     console.log("Errors handled: " + errorObject.code);
@@ -185,6 +184,7 @@ function checkChoices() {
         playerOneLosses++;
         playerTwoWins++;
 
+        $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
         $(".final-outcome").text("You lost! Play again.");
         $(".losses-text").text(playerOneLosses);
 
@@ -194,6 +194,7 @@ function checkChoices() {
     (playerOneChoice === "paper" && playerTwoChoice === "paper") ||
     (playerOneChoice === "scissor" && playerTwoChoice === "scissor")) {
 
+        $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
         $(".final-outcome").text("It was a tie, choose again.");
 
         playAgain();
@@ -205,6 +206,7 @@ function checkChoices() {
         playerOneWins++;
         playerTwoLosses++;
 
+        $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
         $(".final-outcome").text("You won! Play again.");
         $(".wins-text").text(playerOneWins);
 
