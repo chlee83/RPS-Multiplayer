@@ -230,14 +230,15 @@ function checkChoices() {
 //function to display play again button
 function playAgain() {
 
-    $(".play-again").show();
+    var windowTimeout = setTimeout(function() {
+        newGame();
+      }, 3000);
+
 }
 
 
 //function for when play again button is clicked
-function enableNewButton() {
-
-    event.preventDefault();
+function newGame() {
 
     //clear out player's choices
     playerOneChoice = "";
@@ -251,14 +252,7 @@ function enableNewButton() {
     //remove disabled attribute and enable RPS buttons
     $(".btn").removeAttr("disabled");
 
-    //hide play again button
-    $(".play-again").hide();
-
 }
-
-
-//on click of play again button, got to enableNewButton function
-$(document).on("click", ".play-again", enableNewButton);
 
 
 
