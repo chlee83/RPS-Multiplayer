@@ -1,3 +1,8 @@
+var playerOneWins = 0;
+var playerTwoWins = 0;
+var playerOneLosses = 0;
+var playerTwoLosses = 0;
+
 $(document).ready(function() {
 
 
@@ -15,8 +20,7 @@ firebase.initializeApp(config);
 // Create a variable to reference the database.
 var database = firebase.database();
 
-var userIdOne = "";
-var userIdTwo = "";
+var userId = "";
 
 //initiate game for two players using user connections count (2 players)
 
@@ -91,79 +95,130 @@ var userIdTwo = "";
     });
 
 
-
+    //Grab auth ID and put into userID
     firebase.auth().onAuthStateChanged(firebaseUser => {
 
-        if (userIdOne === "") {
+            userId = firebaseUser.uid;
+            console.log(userId);
 
-            userIdOne = firebaseUser.uid;
-            console.log(userIdOne);
-
-        } else if (userID2 !== "") {
-
-            userIdTwo = firebaseUser.uid;
-            console.log(userIdOne);
-            console.log(userIdTwo);
-        }
     });
 
 
 
 
-
-
-
-
-
-
-
-/********************
+/**************************************
  * Main Game Content 
  * */
 
 var playerOneChoice;
 var playerTwoChoice;
-var playerOneName = connectionsRef;
+var playerOneName;
 var playerTwoName;
-var playerOneWins = 0;
-var playerTwoWins = 0;
-var playerOneLosses = 0;
-var playerTwoLosses = 0;
 
-console.log(playerOneName);
 
-//each player can pick a choice. 
+//each player click a button 
 $(".btn").on("click", function(event) {
 
     event.preventDefault();
 
+    //grab the choice into variable
     playerOneChoice = $(this).attr("title");
 
-console.log(playerOneChoice);
+    console.log(playerOneChoice);
 
-    $(".chosen-button-text").html("You chose: " + playerOneChoice);
+    //push choice and player userID to firebase
+    database.ref().push({
+        userId: userId,
+        playerChoice: playerOneChoice,
+        dateAdded: firebase.database.ServerValue.TIMESTAMP
+    });
 
-    opponentTurn();
+    $(".chosen-button-text").text("You Chose:" + playerOneChoice);
+
+    //disable buttons after choice is made
+    $(".btn").prop("disabled", true);
+
+    
 });
 
+database.ref().orderByChild("dateAdded").limitToLast(1).on("child_added", function(childSnapshot) {
+    var sh = childSnapshot.val();
 
-function opponentTurn() {
+    console.log(sh.userId);
+    console.log(userId);
+    console.log(sh.playerChoice);
+    if (sh.userId === userId) {
 
-    if (playerOneChoice === "rock" && playerTwoChoice === "paper") {
+        return false;
 
-        playerOneLosse++;
-        playerTwoWins++;
+    } else if (sh.userId !== userId) {
+
+        playerTwoName = sh.userId;
+        playerTwoChoice = sh.playerChoice;
+
+        console.log(playerTwoName + " " + playerTwoChoice);
+     
+        $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
 
     }
 
+    checkChoices();
 
+}, function(errorObject) {
+    console.log("Errors handled: " + errorObject.code);
+});
+
+
+
+ /**********************
+  * code for game
+  * 
+  * once players sign in, put their ID into a variable for the player 1 and push to firebase and load
+  * once second player signs in, put their ID into variable for player 2 and push to firebase and load
+  * show player 1 and player 2 name on screen
+  * when player picks the button choice, disable button, push the value of the button to firebase with nameID and show "player has made a choice"
+  * have second player make choice and then disable their button, push the value to firebase with nameID.
+  * make if then statement inside the uploading of game details for going to game win/lose function. If other player's choice isnt made yet, return false.
+  * else go to function 
+  * once both values are loaded, display what each chose and who won. in steps
+  * 1) display both players choices with nameID
+  * 2) make if statements: if the player's current ID is rock and other player's ID is paper, lose. etc
+  * 3) once both values are displayed, run function to enable button and run game again
+  */
+
+
+//once both players made choice, check choices and display winner
+function checkChoices() {
+
+    if ((playerOneChoice === "rock" && playerTwoChoice === "paper") || 
+        (playerOneChoice === "paper" && playerTwoChoice === "scissor") ||
+        (playerOneChoice === "scissor" && playerTwoChoice === "rock")) {
+
+        playerOneLosses++;
+        playerTwoWins++;
+
+        $(".chosen-button-text").text("You lost! Play again.");
+        $(".losses-text").text(playerOneLosses);
+
+    } else if ((playerOneChoice === "rock" && playerTwoChoice === "rock") || 
+    (playerOneChoice === "paper" && playerTwoChoice === "paper") ||
+    (playerOneChoice === "scissor" && playerTwoChoice === "scissor")) {
+
+        $(".chosen-button-text").text("It was a tie, choose again.");
+
+    } else if ((playerOneChoice === "rock" && playerTwoChoice === "scissor") || 
+    (playerOneChoice === "paper" && playerTwoChoice === "rock") ||
+    (playerOneChoice === "scissor" && playerTwoChoice === "paper")) {
+
+        playerOneWins++;
+        playerTwoLosses++;
+
+        $(".chosen-button-text").text("You won! Play again.");
+        $(".wins-text").text(playerOneWins);
+
+    }
 
 }
-
-//the next screen doesn't load until both players have made a choice
-//game checks to see who won
-//game displays who won and updates wins/losses
-
 
 
 
@@ -214,17 +269,11 @@ chatBox.on("child_added", function(childSnapshot) {
     
     //display text from firebase to chatter box
     $(".chatBox").prepend(newP);
-})
-
-//end of document ready
 });
 
 
-/************************
- * Questions to ask
- * 
- * Does each connected person have an ID on Firebase?
- * How to link each player to a specific ID
- * how to assign values to specific elements on firebase
- * how to get those values form firebase
- */
+
+
+
+//end of document ready
+});
