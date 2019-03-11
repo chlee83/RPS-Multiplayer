@@ -99,8 +99,13 @@ var userId = "";
         //login anonymously
         firebase.auth().signInAnonymously();
 
+        //remove data from previous game
+        database.ref("/chatbox").remove();
+        database.ref("/gameChoices").remove();
+
         $(".start-cover").css('visibility','hidden');
         $(".play-again").hide();
+        
     });
 
 
@@ -114,10 +119,7 @@ var userId = "";
 
 
 
-
-/**************************************
- * Main Game Content 
- * */
+/************************** Main Game Content ************************************/
 
 // variables for player two and player choices
 var playerOneChoice;
@@ -133,8 +135,6 @@ $(".btn").on("click", function(event) {
     //grab the choice into variable
     playerOneChoice = $(this).attr("title");
 
-    console.log(playerOneChoice);
-
     //push choice and player userID to firebase
     gameChoices.push({
         userId: userId,
@@ -142,29 +142,36 @@ $(".btn").on("click", function(event) {
         dateAdded: firebase.database.ServerValue.TIMESTAMP
     });
 
+    //show player's choice in DOM
     $(".chosen-button-text").text("You Chose:" + playerOneChoice);
 
     //disable buttons after choice is made
     $(".btn").prop("disabled", true);
 
-    
 });
 
+
+//get most recent data from firebase/gameChoices 
 gameChoices.orderByChild("dateAdded").limitToLast(1).on("child_added", function(childSnapshot) {
 
+    //grab data from firebase
     var sh = childSnapshot.val();
 
+    //if firebase data ID is same as current user's ID then just go to check choices
     if (sh.userId === userId) {
 
         checkChoices();
 
+    //else if, firebase data ID is different than current user's ID, put information in as opponents choices
     } else if (sh.userId !== userId) {
 
         playerTwoName = sh.userId;
         playerTwoChoice = sh.playerChoice;
 
+        //display the opponent made a choice in the DOM
         $(".opponent-choice").text("Your opponent made a choice.");
 
+        //go to check choices function
         checkChoices();
     }
 
@@ -177,6 +184,7 @@ gameChoices.orderByChild("dateAdded").limitToLast(1).on("child_added", function(
 //once both players made choice, check choices and display winner
 function checkChoices() {
 
+    //if statement for losses for current user 
     if ((playerOneChoice === "rock" && playerTwoChoice === "paper") || 
         (playerOneChoice === "paper" && playerTwoChoice === "scissor") ||
         (playerOneChoice === "scissor" && playerTwoChoice === "rock")) {
@@ -185,20 +193,22 @@ function checkChoices() {
         playerTwoWins++;
 
         $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
-        $(".final-outcome").text("You lost! Play again.");
+        $(".final-outcome").text("You lost!");
         $(".losses-text").text(playerOneLosses);
 
         playAgain();
 
+    //if statement for ties
     } else if ((playerOneChoice === "rock" && playerTwoChoice === "rock") || 
     (playerOneChoice === "paper" && playerTwoChoice === "paper") ||
     (playerOneChoice === "scissor" && playerTwoChoice === "scissor")) {
 
         $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
-        $(".final-outcome").text("It was a tie, choose again.");
+        $(".final-outcome").text("It was a tie!");
 
         playAgain();
 
+    //if statement for wins for current user
     } else if ((playerOneChoice === "rock" && playerTwoChoice === "scissor") || 
     (playerOneChoice === "paper" && playerTwoChoice === "rock") ||
     (playerOneChoice === "scissor" && playerTwoChoice === "paper")) {
@@ -207,7 +217,7 @@ function checkChoices() {
         playerTwoLosses++;
 
         $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
-        $(".final-outcome").text("You won! Play again.");
+        $(".final-outcome").text("You won!");
         $(".wins-text").text(playerOneWins);
 
         playAgain();
@@ -217,31 +227,45 @@ function checkChoices() {
 }
 
 
+//function to display play again button
 function playAgain() {
 
     $(".play-again").show();
 }
 
+
+//function for when play again button is clicked
 function enableNewButton() {
 
     event.preventDefault();
 
+    //clear out player's choices
     playerOneChoice = "";
     playerTwoChoice = "";
 
+    //clear DOM of all previous round's text
     $(".chosen-button-text").text(playerOneChoice);
     $(".opponent-choice").text(playerTwoChoice);
     $(".final-outcome").text("");
 
+    //remove disabled attribute and enable RPS buttons
     $(".btn").removeAttr("disabled");
 
+    //hide play again button
     $(".play-again").hide();
 
 }
 
+
+//on click of play again button, got to enableNewButton function
 $(document).on("click", ".play-again", enableNewButton);
 
- /********** Chatter box content */
+
+
+
+/******************** Chatter box content ****************************/
+
+
 //Pressing submit button writes text and timestamp
 $(".submitButton").on("click", function(event) {
 
@@ -250,17 +274,21 @@ $(".submitButton").on("click", function(event) {
     //grab user input text
     var inputText = $("#chat").val().trim();
     
+    //if text box empty, don't push anything
     if (inputText === "") {
         return false;
+
+    //else, push to firebase chatBox
     } else {
 
         //upload input text to database
         chatBox.push(inputText);
 
+        //clear out chat area
         $("#chat").val("");
     }
-
 });
+
 
 //display input text from firebase to chatter box past and present
 chatBox.on("child_added", function(childSnapshot) {
@@ -289,8 +317,6 @@ chatBox.on("child_added", function(childSnapshot) {
     //display text from firebase to chatter box
     $(".chatBox").prepend(newP);
 });
-
-
 
 
 
