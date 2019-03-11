@@ -70,14 +70,7 @@ var userId = "";
 
 
 
-    //initially disable start button until two players are on site
-    function disableButton() {
-
-        $(".startText").text("Waiting for another player to start the game... (2 players only)");
-        $(".startbtn").prop("disabled", true);
-        enableButton();
-    }
-    disableButton();
+  
 
     //enable start button when two players are on site
     function enableButton() {
