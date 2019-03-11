@@ -92,6 +92,7 @@ var userId = "";
         firebase.auth().signInAnonymously();
 
         $(".start-cover").css('visibility','hidden');
+        $(".play-again").hide();
     });
 
 
@@ -112,7 +113,6 @@ var userId = "";
 
 var playerOneChoice;
 var playerTwoChoice;
-var playerOneName;
 var playerTwoName;
 
 
@@ -149,7 +149,7 @@ database.ref().orderByChild("dateAdded").limitToLast(1).on("child_added", functi
     console.log(sh.playerChoice);
     if (sh.userId === userId) {
 
-        return false;
+        checkChoices();
 
     } else if (sh.userId !== userId) {
 
@@ -160,9 +160,10 @@ database.ref().orderByChild("dateAdded").limitToLast(1).on("child_added", functi
      
         $(".opponent-choice").text("Opponent Chose: " + playerTwoChoice);
 
+        checkChoices();
     }
 
-    checkChoices();
+    
 
 }, function(errorObject) {
     console.log("Errors handled: " + errorObject.code);
@@ -197,14 +198,18 @@ function checkChoices() {
         playerOneLosses++;
         playerTwoWins++;
 
-        $(".chosen-button-text").text("You lost! Play again.");
+        $(".final-outcome").text("You lost! Play again.");
         $(".losses-text").text(playerOneLosses);
+
+        playAgain();
 
     } else if ((playerOneChoice === "rock" && playerTwoChoice === "rock") || 
     (playerOneChoice === "paper" && playerTwoChoice === "paper") ||
     (playerOneChoice === "scissor" && playerTwoChoice === "scissor")) {
 
-        $(".chosen-button-text").text("It was a tie, choose again.");
+        $(".final-outcome").text("It was a tie, choose again.");
+
+        playAgain();
 
     } else if ((playerOneChoice === "rock" && playerTwoChoice === "scissor") || 
     (playerOneChoice === "paper" && playerTwoChoice === "rock") ||
@@ -213,14 +218,39 @@ function checkChoices() {
         playerOneWins++;
         playerTwoLosses++;
 
-        $(".chosen-button-text").text("You won! Play again.");
+        $(".final-outcome").text("You won! Play again.");
         $(".wins-text").text(playerOneWins);
+
+        playAgain();
 
     }
 
 }
 
 
+function playAgain() {
+
+    $(".play-again").show();
+}
+
+function enableNewButton() {
+
+    event.preventDefault();
+
+    playerOneChoice = "";
+    playerTwoChoice = "";
+
+    $(".chosen-button-text").text(playerOneChoice);
+    $(".opponent-choice").text(playerTwoChoice);
+    $(".final-outcome").text("");
+
+    $(".btn").removeAttr("disabled");
+
+    $(".play-again").hide();
+
+}
+
+$(document).on("click", ".play-again", enableNewButton);
 
  /********** Chatter box content */
 //Pressing submit button writes text and timestamp
