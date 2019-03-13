@@ -80,6 +80,9 @@ var userId = "";
         } else if (numberOfPeople === 1) {
             $(".startText").text("Waiting for another player to start the game... (2 players only)");
             $(".startbtn").prop("disabled", true);
+                //remove data from previous game
+                database.ref("/chatbox").remove();
+                database.ref("/gameChoices").remove();
         } else {
             $(".startbtn").removeAttr("disabled");
             $(".startText").text("There are two players now. Press Start Game!");
@@ -91,10 +94,6 @@ var userId = "";
 
         //login anonymously
         firebase.auth().signInAnonymously();
-
-        //remove data from previous game
-        database.ref("/chatbox").remove();
-        database.ref("/gameChoices").remove();
 
         $(".start-cover").css('visibility','hidden');
         $(".play-again").hide();
